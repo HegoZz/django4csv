@@ -1,6 +1,5 @@
 from django.db import models
 
-<<<<<<< HEAD
 SCORE = {
     '1': 1,
     '2': 2,
@@ -56,7 +55,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text
-=======
 
 class Categories(models.Model):
     """Описание модели категории."""
@@ -96,4 +94,3 @@ class Titles(models.Model):
         on_delete=models.DO_NOTHING,
         related_name="titles",
     )
->>>>>>> a49c2c40502896f430b639197ca6b6d20cb50158
