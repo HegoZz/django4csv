@@ -24,7 +24,8 @@ class Genres(models.Model):
 class Titles(models.Model):
     name = models.CharField(verbose_name="Название жанра", max_length=256)
     year = models.SmallIntegerField(verbose_name="Год выпуска")
-    rating = models.SmallIntegerField(verbose_name="Рейтинг", blank=True)
+    rating = models.SmallIntegerField(verbose_name="Рейтинг",
+                                      blank=True, null=True)
     description = models.TextField(verbose_name="Описание", blank=True)
     genre = models.ForeignKey(
         Genres,
