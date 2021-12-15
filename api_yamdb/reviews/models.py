@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class Categories(models.Model):
+class Category(models.Model):
     """Описание модели категории."""
     name = models.CharField(verbose_name="Название категории", max_length=256)
     slug = models.SlugField(
@@ -11,7 +11,7 @@ class Categories(models.Model):
     )
 
 
-class Genres(models.Model):
+class Genre(models.Model):
     """Описание модели жанра."""
     name = models.CharField(verbose_name="Название жанра", max_length=256)
     slug = models.SlugField(
@@ -21,20 +21,20 @@ class Genres(models.Model):
     )
 
 
-class Titles(models.Model):
+class Title(models.Model):
     name = models.CharField(verbose_name="Название жанра", max_length=256)
     year = models.SmallIntegerField(verbose_name="Год выпуска")
     rating = models.SmallIntegerField(verbose_name="Рейтинг",
                                       blank=True, null=True)
     description = models.TextField(verbose_name="Описание", blank=True)
     genre = models.ForeignKey(
-        Genres,
+        Genre,
         verbose_name='Жанры',
         on_delete=models.DO_NOTHING,
         related_name="titles",
     )
     category = models.ForeignKey(
-        Categories,
+        Category,
         verbose_name='Категория',
         on_delete=models.DO_NOTHING,
         related_name="titles",
