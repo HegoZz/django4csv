@@ -117,3 +117,19 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class Genre_title(models.Model):
+    """Принадлежность произведения конкретному жанру."""
+    title_id = models.ForeignKey(
+        Title,
+        verbose_name='Произведения',
+        on_delete=models.CASCADE,
+        related_name='genre'
+    )
+    genre_id = models.ForeignKey(
+        Genre,
+        verbose_name='Жанры',
+        on_delete=models.DO_NOTHING,
+        related_name="titles",
+    )
