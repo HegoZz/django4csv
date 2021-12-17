@@ -78,9 +78,11 @@ class Command(BaseCommand):
             for row in csv_reader:
                 author_id = row['author']
                 author = models.User.objects.get(id=author_id)
+                title_id = row['title_id']
+                title = models.Title.objects.get(id=title_id)
                 base.objects.get_or_create(
                     id=row['id'],
-                    title_id=row['title_id'],
+                    title_id=title,
                     text=row['text'],
                     author=author,
                     score=row['score'],
@@ -95,9 +97,11 @@ class Command(BaseCommand):
             for row in csv_reader:
                 author_id = row['author']
                 author = models.User.objects.get(id=author_id)
+                review_id = row['review_id']
+                review = models.Review.objects.get(id=review_id)
                 base.objects.get_or_create(
                     id=row['id'],
-                    review_id=row['review_id'],
+                    review=review,
                     text=row['text'],
                     author=author,
                     pub_date=row['pub_date'],

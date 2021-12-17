@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 ROLE_CHOICES = (
@@ -88,7 +89,7 @@ class Genre_title(models.Model):
 
 class Review(models.Model):
     """Модель для отзывов."""
-    title = models.ForeignKey(
+    title_id = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -101,7 +102,7 @@ class Review(models.Model):
     )
     score = models.CharField(max_length=1, choices=SCORE)
     pub_date = models.DateTimeField(
-        auto_now_add=True
+        default=timezone.now()
     )
 
     def __str__(self):
@@ -122,7 +123,7 @@ class Comment(models.Model):
         related_name='comments'
     )
     pub_date = models.DateTimeField(
-        auto_now_add=True
+        default=timezone.now()
     )
 
     def __str__(self):
