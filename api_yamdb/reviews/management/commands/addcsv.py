@@ -1,6 +1,6 @@
 import csv
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 
 from reviews import models
 from api_yamdb.settings import STATICFILES_DIRS 
