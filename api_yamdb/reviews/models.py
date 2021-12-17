@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
 
 
 ROLE_CHOICES = (
@@ -34,6 +33,19 @@ class User(AbstractUser):
         max_length=50,
         choices=ROLE_CHOICES,
     )
+    confirmation_code = models.CharField(
+        'Код подтверждения',
+        max_length=30,
+        blank=True
+    )
+    username = models.CharField(
+        max_length=20,
+        unique=True,
+    )
+    email = models.EmailField(
+        max_length=100, 
+        unique=True,
+    )
 
 
 class Category(models.Model):
@@ -63,6 +75,12 @@ class Title(models.Model):
     rating = models.SmallIntegerField(verbose_name="Рейтинг",
                                       blank=True, null=True)
     description = models.TextField(verbose_name="Описание", blank=True)
+    genre = models.ForeignKey(
+        Genre,
+        verbose_name='Жанры',
+        on_delete=models.DO_NOTHING,
+        related_name="titles",
+    )
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
@@ -71,25 +89,9 @@ class Title(models.Model):
     )
 
 
-class Genre_title(models.Model):
-    """Принадлежность произведения конкретному жанру."""
-    title_id = models.ForeignKey(
-        Title,
-        verbose_name='Произведения',
-        on_delete=models.CASCADE,
-        related_name='genre'
-    )
-    genre_id = models.ForeignKey(
-        Genre,
-        verbose_name='Жанры',
-        on_delete=models.DO_NOTHING,
-        related_name="titles",
-    )
-
-
 class Review(models.Model):
     """Модель для отзывов."""
-    title_id = models.ForeignKey(
+    title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -102,7 +104,7 @@ class Review(models.Model):
     )
     score = models.CharField(max_length=1, choices=SCORE)
     pub_date = models.DateTimeField(
-        default=timezone.now()
+        auto_now_add=True
     )
 
     def __str__(self):
@@ -111,7 +113,7 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Модель для комментариев к отзыву."""
-    review = models.ForeignKey(
+    reviews = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         related_name='comments'
@@ -123,7 +125,7 @@ class Comment(models.Model):
         related_name='comments'
     )
     pub_date = models.DateTimeField(
-        default=timezone.now()
+        auto_now_add=True
     )
 
     def __str__(self):

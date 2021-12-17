@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+# api_yamdb
+api_yamdb
+=======
 ### Как запустить проект:
 
 Клонировать репозиторий и перейти в него в командной строке:
@@ -36,8 +40,15 @@ pip install -r requirements.txt
 python3 manage.py migrate
 ```
 
+Если нужно, заполнить базу из csv-файлов:
+
+```
+python3 manage.py addcsv
+```
+
 Запустить проект:
 
 ```
 python3 manage.py runserver
 ```
+>>>>>>> dev_titles

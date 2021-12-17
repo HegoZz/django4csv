@@ -1,42 +1,48 @@
-from django.shortcuts import render
+import secrets
 
 from django.core.mail import send_mail
-from rest_framework import mixins, viewsets
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import CategorySerializer, GenreSerializer, TitleSerializer
-from .permissions import AdminOrReadOnlyPermission
-from reviews.models import Category, Genre, Title
-
-
-# send_mail(
-#     'Тема письма',
-#     'Текст письма.',
-#     'from@example.com',  # Это поле "От кого"
-#     ['to@example.com'],  # Это поле "Кому" (можно указать список адресов)
-#     fail_silently=False, # Сообщать об ошибках («молчать ли об ошибках?»)
-# )
+from reviews.models import User
+from .serializers import TokenSerializer, UserSerializer
 
 
-class AdminOrReadOnlyViewSet(mixins.CreateModelMixin,
-                         mixins.DestroyModelMixin,
-                         mixins.ListModelMixin,
-                         viewsets.GenericViewSet):
-    permission_classes = (AdminOrReadOnlyPermission)
+class EmailConfirmation(APIView):
+    """Отправка кода подтверждения на email, переданный в запросе."""
+    def post(self, request):
+        email = request.data.get('email')
+        confirmation_code = secrets.token_hex(15)
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            send_mail(
+                'Код подтверждения',
+                confirmation_code,
+                'from@yamdb.com',
+                [email],
+                fail_silently=False,
+            )
+            serializer.save(confirmation_code=confirmation_code, role='user')
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CategoryViewSet(AdminOrReadOnlyViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+class GetToken(APIView):
+    "Создание JWT токена."
+    def get_tokens_for_user(self, user):
+        refresh = RefreshToken.for_user(user)
+        return {
+            'token': str(refresh.access_token),
+        }
 
-
-class GenreViewSet(AdminOrReadOnlyViewSet):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-
-
-class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    pagination_class = LimitOffsetPagination
-    permission_classes = (AdminOrReadOnlyPermission)
+    def post(self, request):
+        serializer = TokenSerializer(data=request.data)
+        if serializer.is_valid():
+            user = User.objects.get(username=request.data.get('username'))
+            return Response(self.get_tokens_for_user(user), status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
