@@ -36,6 +36,12 @@ pip install -r requirements.txt
 python3 manage.py migrate
 ```
 
+Если нужно, заполнить базу из csv-файлов:
+
+```
+python3 manage.py addcsv
+```
+
 Запустить проект:
 
 ```
