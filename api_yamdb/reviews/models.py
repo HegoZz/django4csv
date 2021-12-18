@@ -63,11 +63,11 @@ class Title(models.Model):
     rating = models.SmallIntegerField(verbose_name="Рейтинг",
                                       blank=True, null=True)
     description = models.TextField(verbose_name="Описание", blank=True)
+    genre = models.ManyToManyField(Genre, through='Genre_title')
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
         on_delete=models.DO_NOTHING,
-        related_name="titles",
     )
 
 
@@ -77,7 +77,6 @@ class Genre_title(models.Model):
         Title,
         verbose_name='Произведения',
         on_delete=models.CASCADE,
-        related_name='genre'
     )
     genre_id = models.ForeignKey(
         Genre,
