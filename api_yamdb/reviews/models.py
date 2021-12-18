@@ -9,19 +9,6 @@ ROLE_CHOICES = (
     ('moderator', 'Модератор'),
 )
 
-SCORE = (
-    (1, '1'),
-    (2, '2'),
-    (3, '3'),
-    (4, '4'),
-    (5, '5'),
-    (6, '6'),
-    (7, '7'),
-    (8, '8'),
-    (9, '9'),
-    (10, '10'),
-)
-
 
 class User(AbstractUser):
     """Кастомизация модели пользователя."""
@@ -33,6 +20,19 @@ class User(AbstractUser):
         'Роль',
         max_length=50,
         choices=ROLE_CHOICES,
+    )
+    confirmation_code = models.CharField(
+        'Код подтверждения',
+        max_length=30,
+        blank=True
+    )
+    username = models.CharField(
+        max_length=20,
+        unique=True,
+    )
+    email = models.EmailField(
+        max_length=100, 
+        unique=True,
     )
 
 
@@ -100,7 +100,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.CharField(max_length=1, choices=SCORE)
+    score = models.SmallIntegerField()
     pub_date = models.DateTimeField(
         default=timezone.now()
     )
