@@ -63,15 +63,25 @@ class Title(models.Model):
     rating = models.SmallIntegerField(verbose_name="Рейтинг",
                                       blank=True, null=True)
     description = models.TextField(verbose_name="Описание", blank=True)
-    genre = models.ForeignKey(
-        Genre,
-        verbose_name='Жанры',
-        on_delete=models.DO_NOTHING,
-        related_name="titles",
-    )
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
+        on_delete=models.DO_NOTHING,
+        related_name="titles",
+    )
+
+
+class Genre_title(models.Model):
+    """Принадлежность произведения конкретному жанру."""
+    title_id = models.ForeignKey(
+        Title,
+        verbose_name='Произведения',
+        on_delete=models.CASCADE,
+        related_name='genre'
+    )
+    genre_id = models.ForeignKey(
+        Genre,
+        verbose_name='Жанры',
         on_delete=models.DO_NOTHING,
         related_name="titles",
     )
@@ -90,7 +100,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.SmallIntegerField(max_length=1)
+    score = models.SmallIntegerField()
     pub_date = models.DateTimeField(
         default=timezone.now()
     )
@@ -101,7 +111,7 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Модель для комментариев к отзыву."""
-    reviews = models.ForeignKey(
+    review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         related_name='comments'
