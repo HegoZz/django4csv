@@ -8,19 +8,6 @@ ROLE_CHOICES = (
     ('moderator', 'Модератор'),
 )
 
-SCORE = (
-    (1, '1'),
-    (2, '2'),
-    (3, '3'),
-    (4, '4'),
-    (5, '5'),
-    (6, '6'),
-    (7, '7'),
-    (8, '8'),
-    (9, '9'),
-    (10, '10'),
-)
-
 
 class User(AbstractUser):
     """Кастомизация модели пользователя."""
@@ -75,15 +62,24 @@ class Title(models.Model):
     rating = models.SmallIntegerField(verbose_name="Рейтинг",
                                       blank=True, null=True)
     description = models.TextField(verbose_name="Описание", blank=True)
-    genre = models.ForeignKey(
-        Genre,
-        verbose_name='Жанры',
-        on_delete=models.DO_NOTHING,
-        related_name="titles",
-    )
+    genre = models.ManyToManyField(Genre, through='Genre_title')
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
+        on_delete=models.DO_NOTHING,
+    )
+
+
+class Genre_title(models.Model):
+    """Принадлежность произведения конкретному жанру."""
+    title_id = models.ForeignKey(
+        Title,
+        verbose_name='Произведения',
+        on_delete=models.CASCADE,
+    )
+    genre_id = models.ForeignKey(
+        Genre,
+        verbose_name='Жанры',
         on_delete=models.DO_NOTHING,
         related_name="titles",
     )
@@ -102,7 +98,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.CharField(max_length=1, choices=SCORE)
+    score = models.SmallIntegerField()
     pub_date = models.DateTimeField(
         auto_now_add=True
     )
