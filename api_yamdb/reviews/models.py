@@ -1,24 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 ROLE_CHOICES = (
     ('admin', 'Администратор'),
     ('user', 'Аутентифицированный пользователь'),
     ('moderator', 'Модератор'),
-)
-
-SCORE = (
-    (1, '1'),
-    (2, '2'),
-    (3, '3'),
-    (4, '4'),
-    (5, '5'),
-    (6, '6'),
-    (7, '7'),
-    (8, '8'),
-    (9, '9'),
-    (10, '10'),
 )
 
 
@@ -91,7 +79,7 @@ class Title(models.Model):
 
 class Review(models.Model):
     """Модель для отзывов."""
-    title = models.ForeignKey(
+    title_id = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -102,9 +90,9 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.CharField(max_length=1, choices=SCORE)
+    score = models.SmallIntegerField(max_length=1)
     pub_date = models.DateTimeField(
-        auto_now_add=True
+        default=timezone.now()
     )
 
     def __str__(self):
@@ -125,7 +113,7 @@ class Comment(models.Model):
         related_name='comments'
     )
     pub_date = models.DateTimeField(
-        auto_now_add=True
+        default=timezone.now()
     )
 
     def __str__(self):
