@@ -2,8 +2,9 @@ import secrets
 
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status, mixins, viewsets
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import filters, status, mixins, viewsets
+from rest_framework.pagination import (LimitOffsetPagination, 
+                                       PageNumberPagination,)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -54,7 +55,10 @@ class AdminOrReadOnlyViewSet(mixins.CreateModelMixin,
                          mixins.DestroyModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
-    permission_classes = (permissions.AdminOrReadOnlyPermission)
+    permission_classes = [permissions.AdminOrReadOnlyPermission]
+    pagination_class = PageNumberPagination
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name',) 
 
 
 class CategoryViewSet(AdminOrReadOnlyViewSet):
@@ -71,7 +75,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (permissions.AdminOrReadOnlyPermission) 
+    permission_classes = [permissions.AdminOrReadOnlyPermission] 
 
 
 class AuthorAdminOrReadOnlyViewSet(viewsets.ModelViewSet):
