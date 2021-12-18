@@ -47,11 +47,12 @@ class GetToken(APIView):
         serializer = serializers.TokenSerializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.get(username=request.data.get('username'))
-            return Response(self.get_tokens_for_user(user), status=status.HTTP_200_OK)
+            return Response(self.get_tokens_for_user(user),
+                            status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AdminOrReadOnlyViewSet(mixins.CreateModelMixin,
+class CategoryAndGenreViewSet(mixins.CreateModelMixin,
                          mixins.DestroyModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
@@ -61,12 +62,12 @@ class AdminOrReadOnlyViewSet(mixins.CreateModelMixin,
     search_fields = ('name',) 
 
 
-class CategoryViewSet(AdminOrReadOnlyViewSet):
+class CategoryViewSet(CategoryAndGenreViewSet):
     queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
 
 
-class GenreViewSet(AdminOrReadOnlyViewSet):
+class GenreViewSet(CategoryAndGenreViewSet):
     queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
 
@@ -75,23 +76,23 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = [permissions.AdminOrReadOnlyPermission] 
+    permission_classes = [permissions.AdminOrReadOnlyPermission]
 
 
-class AuthorAdminOrReadOnlyViewSet(viewsets.ModelViewSet):
+class ReviewAndCommentViewSet(viewsets.ModelViewSet):
     permissions_classes = (permissions.AuthorAdminOrReadOnly, )
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-class ReviewViewSet(AuthorAdminOrReadOnlyViewSet):
+class ReviewViewSet(ReviewAndCommentViewSet):
     """Всьюстер для модели Review."""
     queryset = Review.objects.all()
     serializer_class = serializers.ReviewSerializer
 
 
-class CommentViewSet(AuthorAdminOrReadOnlyViewSet):
+class CommentViewSet(ReviewAndCommentViewSet):
     """Всьюстер для модели Comment."""
     serializer_class = serializers.ReviewSerializer
 

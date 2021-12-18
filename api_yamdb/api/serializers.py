@@ -59,14 +59,13 @@ class TitleSerializer(serializers.ModelSerializer):
         read_only=True
     )
     category = CategorySerializer(
-        read_only=True
+        read_only=False
     )
 
     class Meta:
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category')
         model = Title
-        # depth = 1
 
 
 class ReviewSerializer(serializers.ModelSerializer):
