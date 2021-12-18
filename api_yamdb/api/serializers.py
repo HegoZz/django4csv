@@ -54,9 +54,18 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        slug_field='name',
+        read_only=True
+    )
+    category = serializers.SlugRelatedField(
+        slug_field='name',
+        read_only=True
+    )
 
     class Meta:
-        fields = ('name', 'year', 'rating', 'description', 'category')
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
         model = Title
 
 
