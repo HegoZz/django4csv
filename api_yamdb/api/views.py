@@ -79,13 +79,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AdminOrReadOnlyPermission]
 
 
-<<<<<<< HEAD
-class AuthorAdminOrReadOnlyViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.AuthorAdminOrReadOnly, )
-=======
 class ReviewAndCommentViewSet(viewsets.ModelViewSet):
     permissions_classes = (permissions.AuthorAdminOrReadOnly, )
->>>>>>> dev_titles
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
