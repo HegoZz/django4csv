@@ -79,7 +79,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class AuthorAdminOrReadOnlyViewSet(viewsets.ModelViewSet):
-    permissions_classes = (permissions.AuthorAdminOrReadOnly, )
+    permission_classes = (permissions.AuthorAdminOrReadOnly, )
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
