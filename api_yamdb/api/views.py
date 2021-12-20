@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, mixins, viewsets
 from rest_framework.pagination import (LimitOffsetPagination, 
                                        PageNumberPagination,)
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -52,11 +53,15 @@ class GetToken(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UsersViewSet(viewsets.ModelViewSet):
+    pass
+
+
 class CategoryAndGenreViewSet(mixins.CreateModelMixin,
-                         mixins.DestroyModelMixin,
-                         mixins.ListModelMixin,
-                         viewsets.GenericViewSet):
-    permission_classes = [permissions.AdminOrReadOnlyPermission]
+                              mixins.DestroyModelMixin,
+                              mixins.ListModelMixin,
+                              viewsets.GenericViewSet):
+    permission_classes = [permissions.IsSuperuserOrReadOnly]
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',) 
@@ -76,7 +81,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = [permissions.AdminOrReadOnlyPermission]
+    permission_classes = [permissions.IsSuperuserOrReadOnly|IsAdminUser]
 
 
 class ReviewAndCommentViewSet(viewsets.ModelViewSet):
