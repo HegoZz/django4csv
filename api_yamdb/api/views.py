@@ -54,7 +54,8 @@ class GetToken(APIView):
 
 
 class UsersViewSet(viewsets.ModelViewSet):
-    pass
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
 
 
 class CategoryAndGenreViewSet(mixins.CreateModelMixin,
@@ -63,6 +64,7 @@ class CategoryAndGenreViewSet(mixins.CreateModelMixin,
                               viewsets.GenericViewSet):
     permission_classes = [permissions.IsSuperuserOrReadOnly]
     pagination_class = PageNumberPagination
+    lookup_field = 'slug'
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',) 
 
