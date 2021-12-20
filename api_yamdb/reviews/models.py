@@ -37,21 +37,26 @@ class User(AbstractUser):
 
 class Category(models.Model):
     """Описание модели категории."""
+    # Поле ай-ди оставил для совместимости с csv-файлами.
+    # id = models.PositiveSmallIntegerField(default=42)
     name = models.CharField(verbose_name="Название категории", max_length=256)
     slug = models.SlugField(
         verbose_name="Уникальный идентификатор категории",
         max_length=50,
-        unique=True
+        # primary_key=True,
+        unique=True,
     )
 
 
 class Genre(models.Model):
     """Описание модели жанра."""
+    # id = models.PositiveSmallIntegerField(default=42)
     name = models.CharField(verbose_name="Название жанра", max_length=256)
     slug = models.SlugField(
         verbose_name="Уникальный идентификатор жанра",
         max_length=50,
-        unique=True
+        unique=True,
+        # primary_key=True
     )
 
 
