@@ -1,3 +1,5 @@
+import secrets
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
@@ -8,6 +10,9 @@ ROLE_CHOICES = (
     ('user', 'Аутентифицированный пользователь'),
     ('moderator', 'Модератор'),
 )
+
+def generate_confirmation_code():
+    return secrets.token_hex(15)
 
 
 class User(AbstractUser):
@@ -20,15 +25,12 @@ class User(AbstractUser):
         'Роль',
         max_length=50,
         choices=ROLE_CHOICES,
+        default = 'user'
     )
     confirmation_code = models.CharField(
         'Код подтверждения',
         max_length=30,
-        blank=True
-    )
-    username = models.CharField(
-        max_length=20,
-        unique=True,
+        default = generate_confirmation_code()
     )
     email = models.EmailField(
         max_length=100, 
