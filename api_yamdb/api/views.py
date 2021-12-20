@@ -53,11 +53,6 @@ class GetToken(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UsersViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = serializers.UserSerializer
-
-
 class CategoryAndGenreViewSet(mixins.CreateModelMixin,
                               mixins.DestroyModelMixin,
                               mixins.ListModelMixin,
