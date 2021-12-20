@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, mixins, viewsets
 from rest_framework.pagination import (LimitOffsetPagination, 
                                        PageNumberPagination,)
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -48,26 +48,33 @@ class GetToken(APIView):
         serializer = serializers.TokenSerializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.get(username=request.data.get('username'))
-            return Response(self.get_tokens_for_user(user), status=status.HTTP_200_OK)
+            return Response(self.get_tokens_for_user(user),
+                            status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AdminOrReadOnlyViewSet(mixins.CreateModelMixin,
-                         mixins.DestroyModelMixin,
-                         mixins.ListModelMixin,
-                         viewsets.GenericViewSet):
-    permission_classes = [permissions.AdminOrReadOnlyPermission]
+class UsersViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+
+
+class CategoryAndGenreViewSet(mixins.CreateModelMixin,
+                              mixins.DestroyModelMixin,
+                              mixins.ListModelMixin,
+                              viewsets.GenericViewSet):
+    permission_classes = [permissions.IsSuperuserOrReadOnly]
     pagination_class = PageNumberPagination
+    lookup_field = 'slug'
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
 
 
-class CategoryViewSet(AdminOrReadOnlyViewSet):
+class CategoryViewSet(CategoryAndGenreViewSet):
     queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
 
 
-class GenreViewSet(AdminOrReadOnlyViewSet):
+class GenreViewSet(CategoryAndGenreViewSet):
     queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
 
@@ -76,23 +83,23 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = [permissions.AdminOrReadOnlyPermission] 
+    permission_classes = [permissions.IsSuperuserOrReadOnly|IsAdminUser]
 
 
-class AuthorAdminOrReadOnlyViewSet(viewsets.ModelViewSet):
-    permission_classes = (permissions.AuthorAdminOrReadOnly, )
+class ReviewAndCommentViewSet(viewsets.ModelViewSet):
+    permissions_classes = (permissions.AuthorAdminOrReadOnly, )
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-class ReviewViewSet(AuthorAdminOrReadOnlyViewSet):
+class ReviewViewSet(ReviewAndCommentViewSet):
     """Всьюстер для модели Review."""
     queryset = Review.objects.all()
     serializer_class = serializers.ReviewSerializer
 
 
-class CommentViewSet(AuthorAdminOrReadOnlyViewSet):
+class CommentViewSet(ReviewAndCommentViewSet):
     """Всьюстер для модели Comment."""
     serializer_class = serializers.ReviewSerializer
 
