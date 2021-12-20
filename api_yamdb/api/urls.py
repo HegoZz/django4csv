@@ -8,6 +8,7 @@ app_name = 'api'
 
 router = DefaultRouter()
 
+router.register('users', views.UsersViewSet, basename='testuser')
 router.register('categories', views.CategoryViewSet)
 router.register('genres', views.GenreViewSet)
 router.register('titles', views.TitleViewSet)
@@ -21,6 +22,5 @@ router.register(
 urlpatterns = [
     path('v1/auth/signup/', views.EmailConfirmation.as_view()),
     path('v1/auth/token/', views.GetToken.as_view()),
-    path('v1/', include(router.urls))
-#     path('v1/users/me/', )
+    path('v1/', include(router.urls)),
 ]

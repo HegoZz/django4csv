@@ -3,7 +3,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from reviews.models import Category, Comment, Genre, Title, Review, User
+from reviews.models import (Category, Comment, Genre, Genre_title,
+                            Title, Review, User)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -66,6 +67,29 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'rating',
                   'description', 'genre', 'category')
         model = Title
+
+    def create(self, validated_data):
+        category_slug = validated_data['category']
+        category = Category.objects.get(slug=category_slug)
+        category_name = category.name
+        validated_data['category'] = {
+            "name": category_name,
+            "slug": category_slug
+        }
+        genre_data = validated_data.pop('genre')
+        title = Title.objects.create(**validated_data)
+        # title.category = Category.objects.get(slug=category_slug)
+        # title.save()
+        for genre_slug in genre_data:
+            genre = Genre.objects.get(slug=genre_slug)
+            genre_name = genre.name
+            validated_data['category'] = {
+                "name": genre_name,
+                "slug": genre_slug
+            }
+            Genre_title.objects.create(
+                title_id=title, genre_id=genre)
+        return title
 
 
 class ReviewSerializer(serializers.ModelSerializer):
