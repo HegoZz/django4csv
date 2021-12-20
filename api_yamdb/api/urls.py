@@ -11,6 +11,7 @@ router = DefaultRouter()
 router.register('categories', views.CategoryViewSet)
 router.register('genres', views.GenreViewSet)
 router.register('titles', views.TitleViewSet)
+router.register('users', views.UserViewSet)
 router.register(r'titles/(?P<titel_id>\d+)/reviews',
                 views.ReviewViewSet, basename='review')
 router.register(

@@ -1,5 +1,8 @@
+import secrets
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 ROLE_CHOICES = (
@@ -7,6 +10,9 @@ ROLE_CHOICES = (
     ('user', 'Аутентифицированный пользователь'),
     ('moderator', 'Модератор'),
 )
+
+def generate_confirmation_code():
+    return secrets.token_hex(15)
 
 
 class User(AbstractUser):
@@ -19,15 +25,12 @@ class User(AbstractUser):
         'Роль',
         max_length=50,
         choices=ROLE_CHOICES,
+        default = 'user'
     )
     confirmation_code = models.CharField(
         'Код подтверждения',
         max_length=30,
-        blank=True
-    )
-    username = models.CharField(
-        max_length=20,
-        unique=True,
+        default = generate_confirmation_code()
     )
     email = models.EmailField(
         max_length=100, 
@@ -87,7 +90,7 @@ class Genre_title(models.Model):
 
 class Review(models.Model):
     """Модель для отзывов."""
-    title = models.ForeignKey(
+    title_id = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -100,7 +103,7 @@ class Review(models.Model):
     )
     score = models.SmallIntegerField()
     pub_date = models.DateTimeField(
-        auto_now_add=True
+        default=timezone.now()
     )
 
     def __str__(self):
@@ -109,7 +112,7 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Модель для комментариев к отзыву."""
-    reviews = models.ForeignKey(
+    review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         related_name='comments'
@@ -121,7 +124,7 @@ class Comment(models.Model):
         related_name='comments'
     )
     pub_date = models.DateTimeField(
-        auto_now_add=True
+        default=timezone.now()
     )
 
     def __str__(self):

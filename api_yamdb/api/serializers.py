@@ -5,7 +5,7 @@ from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Title, Review, User
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserConfirmationSerializer(serializers.ModelSerializer):
     """Сериализатор для view класса EmailConfirmation."""
 
     class Meta:
@@ -26,11 +26,7 @@ class TokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField(max_length=30)
     
     def validate(self, data):
-        if not User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError(
-                'Пользователя с указанным username не существует'
-            )
-        user = User.objects.get(username=data['username'])
+        user = get_object_or_404(User, username=data['username'])
         if user.confirmation_code != data['confirmation_code']:
             raise serializers.ValidationError(
                 'Неверный код подтверждения'
@@ -110,3 +106,17 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ('text', 'author', 'pub_date')
         read_only_fields = ('pub_date', )
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        model = User
+
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        model = User
+        read_only_fields = ('role',)

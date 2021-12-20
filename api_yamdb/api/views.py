@@ -1,15 +1,16 @@
-import secrets
-
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, mixins, viewsets
 from rest_framework.pagination import (LimitOffsetPagination, 
                                        PageNumberPagination,)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import action
 
 from reviews.models import Category, Genre, Review, Title, User
+from reviews.models import generate_confirmation_code
 from . import permissions, serializers
 
 
@@ -17,8 +18,8 @@ class EmailConfirmation(APIView):
     """Отправка кода подтверждения на email, переданный в запросе."""
     def post(self, request):
         email = request.data.get('email')
-        confirmation_code = secrets.token_hex(15)
-        serializer = serializers.UserSerializer(data=request.data)
+        confirmation_code = generate_confirmation_code()
+        serializer = serializers.UserConfirmationSerializer(data=request.data)
         if serializer.is_valid():
             send_mail(
                 'Код подтверждения',
@@ -27,7 +28,7 @@ class EmailConfirmation(APIView):
                 [email],
                 fail_silently=False,
             )
-            serializer.save(confirmation_code=confirmation_code, role='user')
+            serializer.save(confirmation_code=confirmation_code)
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK
@@ -58,7 +59,7 @@ class AdminOrReadOnlyViewSet(mixins.CreateModelMixin,
     permission_classes = [permissions.AdminOrReadOnlyPermission]
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter, )
-    search_fields = ('name',) 
+    search_fields = ('name',)
 
 
 class CategoryViewSet(AdminOrReadOnlyViewSet):
@@ -99,3 +100,27 @@ class CommentViewSet(AuthorAdminOrReadOnlyViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
         return review.comments.all()
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+    lookup_field = 'username'
+    permission_classes = (permissions.IsAdmin,)
+    pagination_class = PageNumberPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('=username',)
+
+    @action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated])
+    def me(self, request, pk=None):
+        if request.method == 'GET':
+            serializer = self.get_serializer(instance=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.user.role == 'user':
+            serializer = serializers.UserRoleSerializer(instance=request.user, data=request.data, partial=True)
+        else:
+            serializer = self.get_serializer(instance=request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
