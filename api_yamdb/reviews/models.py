@@ -1,5 +1,8 @@
+import secrets
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 ROLE_CHOICES = (
@@ -8,18 +11,8 @@ ROLE_CHOICES = (
     ('moderator', 'Модератор'),
 )
 
-SCORE = (
-    (1, '1'),
-    (2, '2'),
-    (3, '3'),
-    (4, '4'),
-    (5, '5'),
-    (6, '6'),
-    (7, '7'),
-    (8, '8'),
-    (9, '9'),
-    (10, '10'),
-)
+def generate_confirmation_code():
+    return secrets.token_hex(15)
 
 
 class User(AbstractUser):
@@ -32,6 +25,16 @@ class User(AbstractUser):
         'Роль',
         max_length=50,
         choices=ROLE_CHOICES,
+        default = 'user'
+    )
+    confirmation_code = models.CharField(
+        'Код подтверждения',
+        max_length=30,
+        default = generate_confirmation_code()
+    )
+    email = models.EmailField(
+        max_length=100, 
+        unique=True,
     )
 
 
@@ -41,7 +44,7 @@ class Category(models.Model):
     slug = models.SlugField(
         verbose_name="Уникальный идентификатор категории",
         max_length=50,
-        unique=True
+        unique=True,
     )
 
 
@@ -51,7 +54,7 @@ class Genre(models.Model):
     slug = models.SlugField(
         verbose_name="Уникальный идентификатор жанра",
         max_length=50,
-        unique=True
+        unique=True,
     )
 
 
@@ -62,15 +65,24 @@ class Title(models.Model):
     rating = models.SmallIntegerField(verbose_name="Рейтинг",
                                       blank=True, null=True)
     description = models.TextField(verbose_name="Описание", blank=True)
-    genre = models.ForeignKey(
-        Genre,
-        verbose_name='Жанры',
-        on_delete=models.DO_NOTHING,
-        related_name="titles",
-    )
+    genre = models.ManyToManyField(Genre, through='Genre_title')
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
+        on_delete=models.DO_NOTHING,
+    )
+
+
+class Genre_title(models.Model):
+    """Принадлежность произведения конкретному жанру."""
+    title_id = models.ForeignKey(
+        Title,
+        verbose_name='Произведения',
+        on_delete=models.CASCADE,
+    )
+    genre_id = models.ForeignKey(
+        Genre,
+        verbose_name='Жанры',
         on_delete=models.DO_NOTHING,
         related_name="titles",
     )
@@ -78,7 +90,7 @@ class Title(models.Model):
 
 class Review(models.Model):
     """Модель для отзывов."""
-    title = models.ForeignKey(
+    title_id = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -89,9 +101,9 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.CharField(max_length=1, choices=SCORE)
+    score = models.SmallIntegerField()
     pub_date = models.DateTimeField(
-        auto_now_add=True
+        default=timezone.now()
     )
 
     def __str__(self):
@@ -100,7 +112,7 @@ class Review(models.Model):
 
 class Comment(models.Model):
     """Модель для комментариев к отзыву."""
-    reviews = models.ForeignKey(
+    review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
         related_name='comments'
@@ -112,7 +124,7 @@ class Comment(models.Model):
         related_name='comments'
     )
     pub_date = models.DateTimeField(
-        auto_now_add=True
+        default=timezone.now()
     )
 
     def __str__(self):
