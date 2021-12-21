@@ -80,6 +80,11 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     permission_classes = [permissions.IsSuperuserOrReadOnly|IsAdminUser]
 
+    def get_serializer_class(self):
+        if self.action in ['create', 'partial_update']:
+            return serializers.TitlePostUpdateSerializer
+        return serializers.TitleSerializer
+
 
 class ReviewAndCommentViewSet(viewsets.ModelViewSet):
     permissions_classes = (permissions.AuthorAdminOrReadOnly, )
