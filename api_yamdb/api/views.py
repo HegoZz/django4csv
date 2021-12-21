@@ -95,7 +95,9 @@ class ReviewAndCommentViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        title = Title.objects.get(id=self.kwargs['title_id'])
+        serializer.save(title_id=title, author=self.request.user)
+
 
 class ReviewViewSet(ReviewAndCommentViewSet):
     """Всьюстер для модели Review."""
