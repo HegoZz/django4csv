@@ -1,13 +1,12 @@
 from django.db.models import fields
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import (Category, Comment, Genre, Genre_title,
                             Title, Review, User)
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserConfirmationSerializer(serializers.ModelSerializer):
     """Сериализатор для view класса EmailConfirmation."""
 
     class Meta:
@@ -28,11 +27,7 @@ class TokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField(max_length=30)
     
     def validate(self, data):
-        if not User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError(
-                'Пользователя с указанным username не существует'
-            )
-        user = User.objects.get(username=data['username'])
+        user = get_object_or_404(User, username=data['username'])
         if user.confirmation_code != data['confirmation_code']:
             raise serializers.ValidationError(
                 'Неверный код подтверждения'
@@ -80,26 +75,6 @@ class TitlePostUpdateSerializer(serializers.ModelSerializer):
                   'description', 'genre', 'category')
         model = Title
 
-    # def create(self, validated_data):
-    #     print(self.initial_data)
-    #     genre_slugs = self.initial_data['genre'][0]
-    #     # queryset=Genre.objects.filter(slug='slug')
-    #     # queryset=Category.objects.filter(slug='slug')
-    #     print(genre_slugs)
-    #     print(validated_data)
-    #     genre_data = validated_data.pop('genre')
-    #     # genre_data = genre_data[0]
-
-    #     print(genre_data)#.filter(slug=genre_slugs))
-    #     title = Title.objects.create(**validated_data)
-
-    #     for genre in genre_data:
-    #         current_genre, status = Genre.objects.get(
-    #             **genre)
-    #         Genre_title.objects.create(
-    #             genre_id=current_genre, title_id=title)
-    #     return title
-
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
@@ -130,6 +105,20 @@ class ReviewSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError(
             'Оценка должна быть от 1 до 10.'
         )
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        model = User
+
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        model = User
+        read_only_fields = ('role',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
