@@ -1,5 +1,6 @@
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, mixins, viewsets
 from rest_framework.pagination import (LimitOffsetPagination, 
                                        PageNumberPagination,)
@@ -12,6 +13,7 @@ from rest_framework.decorators import action
 from reviews.models import Category, Genre, Review, Title, User
 from reviews.models import generate_confirmation_code
 from . import permissions, serializers
+from .filters import TitleFilter
 
 
 class EmailConfirmation(APIView):
@@ -79,6 +81,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TitleSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = [permissions.IsSuperuserOrReadOnly|IsAdminUser]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
