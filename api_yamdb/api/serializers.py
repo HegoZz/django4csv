@@ -85,7 +85,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('text', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
         read_only_fields = ('pub_date', )
 
     def validate_author(self, value):
@@ -93,7 +93,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         title_id = self.context['request'].title_id
         title = Title.objects.get(id=title_id)
         review = title.reviews.all()
-        if user in review.author:
+        if user in zip(review.author):
             raise serializers.ValidationError(
                 'Нельзя оставлять больше одного отзыва на произведение.'
             )
@@ -130,5 +130,5 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('text', 'author', 'pub_date')
+        fields = ('id', 'text', 'author', 'pub_date')
         read_only_fields = ('pub_date', )
