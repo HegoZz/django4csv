@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
+from statistics import mean
 
 from reviews.models import Category, Genre, Review, Title, User
 from reviews.models import generate_confirmation_code
@@ -102,11 +103,11 @@ class ReviewViewSet(ReviewAndCommentViewSet):
 
     def perform_create(self, serializer):
         title = Title.objects.get(id=self.kwargs['title_id'])
-        serializer.save(title_id=title, author=self.request.user)
+        serializer.save(title=title, author=self.request.user)
 
-    # def get_queryset(self):
-    #     title = get_object_or_404(Title, id=self.kwargs['title_id'])
-    #     return title.reviews.all()
+    def get_queryset(self):
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        return title.reviews.all()
 
 
 class CommentViewSet(ReviewAndCommentViewSet):
@@ -144,3 +145,10 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+        #считаем рейтинг
+        # reviews = Review.objects.filter(title_id=self.kwargs['title_id'])
+        # # if len(reviews) != 0:
+        # scores = list(map(lambda x: x.score, reviews))
+        # rating = mean(scores)

@@ -82,7 +82,7 @@ class Command(BaseCommand):
                 title = models.Title.objects.get(id=title_id)
                 base.objects.get_or_create(
                     id=row['id'],
-                    title_id=title,
+                    title=title,
                     text=row['text'],
                     author=author,
                     score=row['score'],

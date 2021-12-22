@@ -106,6 +106,14 @@ class Review(models.Model):
         default=timezone.now()
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_title_author'
+            )
+        ]
+
     def __str__(self):
         return self.text
 
