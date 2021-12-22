@@ -28,7 +28,6 @@ class AuthorAdminOrReadOnly(permissions.BasePermission):
                 or request.method in permissions.SAFE_METHODS
             )
         return request.method in permissions.SAFE_METHODS
-        
 
 
 class IsAdmin(permissions.BasePermission):
@@ -37,5 +36,5 @@ class IsAdmin(permissions.BasePermission):
         return (
             request.user.is_authenticated
             and (request.user.role == 'admin'
-            or request.user.is_superuser)
+                 or request.user.is_superuser)
         )

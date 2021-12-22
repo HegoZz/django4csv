@@ -1,9 +1,7 @@
-from django.db.models import fields
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from reviews.models import (Category, Comment, Genre, Genre_title,
-                            Title, Review, User)
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class UserConfirmationSerializer(serializers.ModelSerializer):
@@ -12,7 +10,7 @@ class UserConfirmationSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('email', 'username')
         model = User
-    
+
     def validate_username(self, value):
         if value == 'me':
             raise serializers.ValidationError(
@@ -25,7 +23,7 @@ class TokenSerializer(serializers.Serializer):
     """Сериализатор для view класса GetToken."""
     username = serializers.CharField(max_length=20)
     confirmation_code = serializers.CharField(max_length=30)
-    
+
     def validate(self, data):
         user = get_object_or_404(User, username=data['username'])
         if user.confirmation_code != data['confirmation_code']:
@@ -85,7 +83,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id' ,'text', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
         read_only_fields = ('pub_date',)
 
     def validate(self, data):
@@ -97,7 +95,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         )
         if title.reviews.filter(author=author.id).exists():
             raise serializers.ValidationError(
-            'Нельзя оставлять больше одного отзыва на произведение.'
+                'Нельзя оставлять больше одного отзыва на произведение.'
             )
         return data
 
@@ -112,13 +110,17 @@ class ReviewSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
         model = User
 
 
 class UserRoleSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
         model = User
         read_only_fields = ('role',)
 

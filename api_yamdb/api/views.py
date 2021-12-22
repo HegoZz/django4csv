@@ -2,18 +2,18 @@ from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, mixins, viewsets
-from rest_framework.pagination import (LimitOffsetPagination, 
-                                       PageNumberPagination,)
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.pagination import (LimitOffsetPagination,
+                                       PageNumberPagination)
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import action
-from statistics import mean
 
-from reviews.models import Category, Genre, Review, Title, User
-from reviews.models import generate_confirmation_code
+from reviews.models import (Category, Genre, Review, Title, User,
+                            generate_confirmation_code)
+
 from . import permissions, serializers
 from .filters import TitleFilter
 
@@ -82,7 +82,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = serializers.TitleSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = [permissions.IsSuperuserOrReadOnly|IsAdminUser]
+    permission_classes = [permissions.IsSuperuserOrReadOnly | IsAdminUser]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
 
@@ -143,23 +143,23 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('=username',)
 
-    @action(methods=['get', 'patch'], detail=False, permission_classes=[IsAuthenticated])
+    @action(
+        methods=['get', 'patch'], detail=False,
+        permission_classes=[IsAuthenticated]
+    )
     def me(self, request, pk=None):
         if request.method == 'GET':
             serializer = self.get_serializer(instance=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         if request.user.role == 'user':
-            serializer = serializers.UserRoleSerializer(instance=request.user, data=request.data, partial=True)
+            serializer = serializers.UserRoleSerializer(
+                instance=request.user, data=request.data, partial=True
+            )
         else:
-            serializer = self.get_serializer(instance=request.user, data=request.data, partial=True)
+            serializer = self.get_serializer(
+                instance=request.user, data=request.data, partial=True
+            )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-        #считаем рейтинг
-        # reviews = Review.objects.filter(title_id=self.kwargs['title_id'])
-        # # if len(reviews) != 0:
-        # scores = list(map(lambda x: x.score, reviews))
-        # rating = mean(scores)
