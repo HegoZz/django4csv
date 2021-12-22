@@ -90,7 +90,7 @@ class Genre_title(models.Model):
 
 class Review(models.Model):
     """Модель для отзывов."""
-    title_id = models.ForeignKey(
+    title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews'
@@ -105,6 +105,14 @@ class Review(models.Model):
     pub_date = models.DateTimeField(
         default=timezone.now()
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_title_author'
+            )
+        ]
 
     def __str__(self):
         return self.text
