@@ -102,11 +102,19 @@ class ReviewViewSet(ReviewAndCommentViewSet):
     serializer_class = serializers.ReviewSerializer
 
     def perform_create(self, serializer):
-        avg_rating = Review.objects.all().aggregate(rating=Avg('score'))
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        serializer.save(title=title, author=self.request.user)
+        avg_rating = Review.objects.aggregate(rating=Avg('score'))
         title.rating = avg_rating['rating']
         title.save()
-        serializer.save(title=title, author=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save()
+        if 'score' in self.request.data:
+            avg_rating = Review.objects.all().aggregate(rating=Avg('score'))
+            title = get_object_or_404(Title, id=self.kwargs['title_id'])
+            title.rating = avg_rating['rating']
+            title.save()
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
