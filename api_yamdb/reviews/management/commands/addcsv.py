@@ -3,16 +3,13 @@ import csv
 from django.core.management.base import BaseCommand
 
 from reviews import models
-from api_yamdb.settings import STATICFILES_DIRS 
+from api_yamdb.settings import STATICFILES_DIRS
 
 
 class Command(BaseCommand):
     """Записывает в базу данных sqlite из csv-файлов."""
-    
+
     help = 'Writes to sqlite database from csv files.'
-    
-    # def add_arguments(self, parser):
-    #     parser.add_argument('poll_ids', nargs='+', type=int)
 
     def handle(self, *args, **options):
         # Соответствие имён файлов csv названиям таблиц БД
@@ -26,7 +23,7 @@ class Command(BaseCommand):
             # 'genre_title.csv': models.Genre_title,
             # 'review.csv': models.Review,
         }
- 
+
         for name in CSV_TO_SQL:
             print(name, end=' ')
             location_csv = STATICFILES_DIRS[0] + 'data/' + name
@@ -40,7 +37,8 @@ class Command(BaseCommand):
         location_csv = STATICFILES_DIRS[0] + 'data/'
 
         print('titles.csv', end=' ')
-        with open(location_csv + 'titles.csv', 'r', encoding='utf-8') as csv_file:
+        with open(location_csv + 'titles.csv', 'r',
+                  encoding='utf-8') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             base = models.Title
             for row in csv_reader:
@@ -58,7 +56,7 @@ class Command(BaseCommand):
         with open(location_csv + 'genre_title.csv', 'r',
                   encoding='utf-8') as csv_file:
             csv_reader = csv.DictReader(csv_file)
-            base = models.Genre_title
+            base = models.GenreTitle
             for row in csv_reader:
                 title_id = row['title_id']
                 title = models.Title.objects.get(id=title_id)
@@ -72,7 +70,8 @@ class Command(BaseCommand):
         print(' -- filled')
 
         print('review.csv', end=' ')
-        with open(location_csv + 'review.csv', 'r', encoding='utf-8') as csv_file:
+        with open(location_csv + 'review.csv', 'r',
+                  encoding='utf-8') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             base = models.Review
             for row in csv_reader:
@@ -91,7 +90,8 @@ class Command(BaseCommand):
         print(' -- filled')
 
         print('comments.csv', end=' ')
-        with open(location_csv + 'comments.csv', 'r', encoding='utf-8') as csv_file:
+        with open(location_csv + 'comments.csv', 'r',
+                  encoding='utf-8') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             base = models.Comment
             for row in csv_reader:
