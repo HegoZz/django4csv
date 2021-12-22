@@ -98,6 +98,14 @@ class ReviewViewSet(ReviewAndCommentViewSet):
     queryset = Review.objects.all()
     serializer_class = serializers.ReviewSerializer
 
+    def perform_create(self, serializer):
+        title = Title.objects.get(id=self.kwargs['title_id'])
+        serializer.save(title_id=title, author=self.request.user)
+
+    # def get_queryset(self):
+    #     title = get_object_or_404(Title, id=self.kwargs['title_id'])
+    #     return title.reviews.all()
+
 
 class CommentViewSet(ReviewAndCommentViewSet):
     """Всьюстер для модели Comment."""

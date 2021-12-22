@@ -85,19 +85,17 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('text', 'author', 'score', 'pub_date')
-        read_only_fields = ('pub_date', )
+        fields = ('id' ,'text', 'author', 'score', 'pub_date')
+        read_only_fields = ('pub_date',)
 
-    def validate_author(self, value):
-        user = get_object_or_404(User, username=value)
-        title_id = self.context['request'].title_id
-        title = Title.objects.get(id=title_id)
-        review = title.reviews.all()
-        if user in review.author:
+    def validate(self, data):
+        author=self.context['request'].user
+        title = Title.objects.get(id=self.context['view'].kwargs.get('title_id'))
+        if title.reviews.filter(author=author.id).exists():
             raise serializers.ValidationError(
-                'Нельзя оставлять больше одного отзыва на произведение.'
+               'Нельзя оставлять больше одного отзыва на произведение.'
             )
-        return value
+        return data
 
     def validate_score(self, value):
         if 1 <= value <= 10:
