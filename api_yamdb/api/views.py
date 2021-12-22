@@ -94,10 +94,6 @@ class ReviewAndCommentViewSet(viewsets.ModelViewSet):
     permissions_classes = (permissions.AuthorAdminOrReadOnly, )
     pagination_class = LimitOffsetPagination
 
-    def perform_create(self, serializer):
-        title = Title.objects.get(id=self.kwargs['title_id'])
-        serializer.save(title_id=title, author=self.request.user)
-
 
 class ReviewViewSet(ReviewAndCommentViewSet):
     """Всьюстер для модели Review."""
@@ -115,7 +111,11 @@ class ReviewViewSet(ReviewAndCommentViewSet):
 
 class CommentViewSet(ReviewAndCommentViewSet):
     """Всьюстер для модели Comment."""
-    serializer_class = serializers.ReviewSerializer
+    serializer_class = serializers.CommentSerializer
+
+    def perform_create(self, serializer):
+        review = Review.objects.get(id=self.kwargs['review_id'])
+        serializer.save(review_id=review, author=self.request.user)
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')

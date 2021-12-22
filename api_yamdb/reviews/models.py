@@ -90,7 +90,7 @@ class Genre_title(models.Model):
 
 class Review(models.Model):
     """Модель для отзывов."""
-    title_id = models.ForeignKey(
+    title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
         related_name='reviews'
