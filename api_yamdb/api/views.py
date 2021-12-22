@@ -1,4 +1,5 @@
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, mixins, viewsets
@@ -92,17 +93,19 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewAndCommentViewSet(viewsets.ModelViewSet):
-    permissions_classes = (permissions.AuthorAdminOrReadOnly, )
+    permission_classes = (permissions.AuthorAdminOrReadOnly, )
     pagination_class = LimitOffsetPagination
 
 
 class ReviewViewSet(ReviewAndCommentViewSet):
     """Всьюстер для модели Review."""
-    queryset = Review.objects.all()
     serializer_class = serializers.ReviewSerializer
 
     def perform_create(self, serializer):
-        title = Title.objects.get(id=self.kwargs['title_id'])
+        avg_rating = Review.objects.all().aggregate(rating=Avg('score'))
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        title.rating = avg_rating['rating']
+        title.save()
         serializer.save(title=title, author=self.request.user)
 
     def get_queryset(self):
@@ -115,8 +118,8 @@ class CommentViewSet(ReviewAndCommentViewSet):
     serializer_class = serializers.CommentSerializer
 
     def perform_create(self, serializer):
-        review = Review.objects.get(id=self.kwargs['review_id'])
-        serializer.save(review_id=review, author=self.request.user)
+        review = get_object_or_404(Review, id=self.kwargs['review_id'])
+        serializer.save(review=review, author=self.request.user)
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
