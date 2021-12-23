@@ -1,14 +1,32 @@
-import secrets
+from datetime import datetime
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
+
 
 ROLE_CHOICES = (
     ('admin', 'Администратор'),
     ('user', 'Аутентифицированный пользователь'),
     ('moderator', 'Модератор'),
 )
+
+
+def validate_year(value):
+    current_year = datetime.now().year
+    if -3400 > value or value > current_year:
+        raise ValidationError(
+            _('На данный момент нет произведений, '
+            'созданных в %(value)-м году'),
+            params={'value': value},
+        )
+
+
+def validate_score(value):
+    if 0 > value or value > 10:
+        raise ValidationError('Оценка должна быть от 0 до 10')
 
 
 class User(AbstractUser):
@@ -48,9 +66,16 @@ class User(AbstractUser):
 
 class Category(models.Model):
     """Описание модели категории."""
-    name = models.CharField(verbose_name="Название категории", max_length=256)
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
+    name = models.CharField(
+        verbose_name='Название категории',
+        max_length=256,
+    )
     slug = models.SlugField(
-        verbose_name="Уникальный идентификатор категории",
+        verbose_name='Уникальный идентификатор категории',
         max_length=50,
         unique=True,
     )
@@ -58,9 +83,16 @@ class Category(models.Model):
 
 class Genre(models.Model):
     """Описание модели жанра."""
-    name = models.CharField(verbose_name="Название жанра", max_length=256)
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
+
+    name = models.CharField(
+        verbose_name='Название жанра',
+        max_length=256,
+    )
     slug = models.SlugField(
-        verbose_name="Уникальный идентификатор жанра",
+        verbose_name='Уникальный идентификатор жанра',
         max_length=50,
         unique=True,
     )
@@ -68,12 +100,29 @@ class Genre(models.Model):
 
 class Title(models.Model):
     """Описание модели произведения."""
-    name = models.CharField(verbose_name="Название жанра", max_length=256)
-    year = models.SmallIntegerField(verbose_name="Год выпуска")
-    rating = models.SmallIntegerField(verbose_name="Рейтинг",
-                                      blank=True, null=True)
-    description = models.TextField(verbose_name="Описание", blank=True)
-    genre = models.ManyToManyField(Genre, through='Genre_title')
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
+
+    name = models.CharField(
+        verbose_name='Название произведения',
+        max_length=256,
+    )
+    year = models.SmallIntegerField(
+        verbose_name='Год выпуска',
+        validators=[validate_year],
+    )
+    rating = models.SmallIntegerField(
+        verbose_name='Рейтинг',
+        blank=True,
+        null=True,
+    )
+    description = models.TextField(verbose_name='Описание', blank=True,)
+    genre = models.ManyToManyField(
+        Genre,
+        through='GenreTitle',
+        verbose_name='Жанр произведения',
+    )
     category = models.ForeignKey(
         Category,
         verbose_name='Категория',
@@ -81,7 +130,7 @@ class Title(models.Model):
     )
 
 
-class Genre_title(models.Model):
+class GenreTitle(models.Model):
     """Принадлежность произведения конкретному жанру."""
     title_id = models.ForeignKey(
         Title,
@@ -115,7 +164,9 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.SmallIntegerField(verbose_name='Оценка',)
+    score = models.SmallIntegerField(
+        verbose_name='Оценка',
+        validators=[validate_score])
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         default=timezone.now()
