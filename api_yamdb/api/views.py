@@ -2,6 +2,7 @@ from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import (LimitOffsetPagination,
@@ -11,33 +12,34 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from reviews.models import (Category, Genre, Review, Title, User,
-                            generate_confirmation_code)
+from reviews.models import Category, Genre, Review, Title, User
 
 from . import permissions, serializers
 from .filters import TitleFilter
+from api_yamdb.settings import EMAIL
 
 
 class EmailConfirmation(APIView):
     """Отправка кода подтверждения на email, переданный в запросе."""
     def post(self, request):
         email = request.data.get('email')
-        confirmation_code = generate_confirmation_code()
         serializer = serializers.UserConfirmationSerializer(data=request.data)
-        if serializer.is_valid():
-            send_mail(
-                'Код подтверждения',
-                confirmation_code,
-                'from@yamdb.com',
-                [email],
-                fail_silently=False,
-            )
-            serializer.save(confirmation_code=confirmation_code)
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user = User.objects.get(email=email)
+        confirmation_code_gen = PasswordResetTokenGenerator()
+        confirmation_code = confirmation_code_gen.make_token(user)
+        send_mail(
+            'Код подтверждения',
+            confirmation_code,
+            EMAIL,
+            [email],
+            fail_silently=False,
+        )
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
 
 
 class GetToken(APIView):
@@ -50,11 +52,10 @@ class GetToken(APIView):
 
     def post(self, request):
         serializer = serializers.TokenSerializer(data=request.data)
-        if serializer.is_valid():
-            user = User.objects.get(username=request.data.get('username'))
-            return Response(self.get_tokens_for_user(user),
-                            status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.get(username=request.data.get('username'))
+        return Response(self.get_tokens_for_user(user),
+                        status=status.HTTP_200_OK)
 
 
 class CategoryAndGenreViewSet(mixins.CreateModelMixin,
@@ -151,7 +152,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = self.get_serializer(instance=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        if request.user.role == 'user':
+        if request.user.is_user:
             serializer = serializers.UserRoleSerializer(
                 instance=request.user, data=request.data, partial=True
             )
@@ -159,7 +160,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(
                 instance=request.user, data=request.data, partial=True
             )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

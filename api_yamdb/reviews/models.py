@@ -11,31 +11,39 @@ ROLE_CHOICES = (
 )
 
 
-def generate_confirmation_code():
-    return secrets.token_hex(15)
-
-
 class User(AbstractUser):
     """Кастомизация модели пользователя."""
     bio = models.TextField(
-        'Биография',
+        verbose_name='Биография',
         blank=True,
     )
     role = models.CharField(
-        'Роль',
+        verbose_name='Роль',
         max_length=50,
         choices=ROLE_CHOICES,
         default='user'
     )
-    confirmation_code = models.CharField(
-        'Код подтверждения',
-        max_length=30,
-        default=generate_confirmation_code()
-    )
     email = models.EmailField(
+        verbose_name='Email',
         max_length=100,
         unique=True,
     )
+
+    @property
+    def is_admin(self):
+        return self.role == 'admin'
+    
+    @property
+    def is_moderator(self):
+        return self.role =='moderator'
+    
+    @property
+    def is_user(self):
+        return self.role =='user'
+    
+    class Meta:
+        verbose_name = 'Пользователи'
+        verbose_name_plural = 'Пользователи'
 
 
 class Category(models.Model):
@@ -77,32 +85,39 @@ class Genre_title(models.Model):
     """Принадлежность произведения конкретному жанру."""
     title_id = models.ForeignKey(
         Title,
-        verbose_name='Произведения',
+        verbose_name='Произведение',
         on_delete=models.CASCADE,
     )
     genre_id = models.ForeignKey(
         Genre,
-        verbose_name='Жанры',
+        verbose_name='Жанр',
         on_delete=models.DO_NOTHING,
         related_name="titles",
     )
+
+    class Meta:
+        verbose_name = 'Жанры произведений'
+        verbose_name_plural = 'Жанры произведений'
 
 
 class Review(models.Model):
     """Модель для отзывов."""
     title = models.ForeignKey(
         Title,
+        verbose_name='Произведение',
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    text = models.TextField()
+    text = models.TextField(verbose_name='Отзыв')
     author = models.ForeignKey(
         User,
+        verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.SmallIntegerField()
+    score = models.SmallIntegerField(verbose_name='Оценка',)
     pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
         default=timezone.now()
     )
 
@@ -113,6 +128,8 @@ class Review(models.Model):
                 name='unique_title_author'
             )
         ]
+        verbose_name = 'Отзывы'
+        verbose_name_plural = 'Отзывы'
 
     def __str__(self):
         return self.text
@@ -122,18 +139,25 @@ class Comment(models.Model):
     """Модель для комментариев к отзыву."""
     review = models.ForeignKey(
         Review,
+        verbose_name='Отзыв',
         on_delete=models.CASCADE,
         related_name='comments'
     )
-    text = models.TextField()
+    text = models.TextField(verbose_name='Комментарий')
     author = models.ForeignKey(
         User,
+        verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='comments'
     )
     pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
         default=timezone.now()
     )
+
+    class Meta:
+        verbose_name = 'Комментарии'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return self.text

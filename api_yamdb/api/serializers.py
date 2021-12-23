@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from django.contrib.auth.tokens import default_token_generator
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -26,12 +27,11 @@ class TokenSerializer(serializers.Serializer):
 
     def validate(self, data):
         user = get_object_or_404(User, username=data['username'])
-        if user.confirmation_code != data['confirmation_code']:
+        if not default_token_generator.check_token(user, data['confirmation_code']):
             raise serializers.ValidationError(
                 'Неверный код подтверждения'
             )
         return data
-
 
 class CategorySerializer(serializers.ModelSerializer):
 
