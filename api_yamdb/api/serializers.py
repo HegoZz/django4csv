@@ -57,7 +57,7 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
 
 
-class TitlePostUpdateSerializer(serializers.ModelSerializer):
+class TitleWriteSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
