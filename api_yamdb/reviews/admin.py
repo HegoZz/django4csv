@@ -4,7 +4,7 @@ from .models import Category, Comment, Genre, Review, Title, User
 
 
 class TitleAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name", "year", "rating", "description",
+    list_display = ("pk", "name", "year", "description",
                     "category")
     search_fields = ("name", "description", "category")
     list_filter = ("category",)

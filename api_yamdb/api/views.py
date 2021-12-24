@@ -80,12 +80,13 @@ class GenreViewSet(CategoryAndGenreViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = serializers.TitleSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = [permissions.IsSuperuserOrReadOnly | IsAdminUser]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
@@ -105,17 +106,6 @@ class ReviewViewSet(ReviewAndCommentViewSet):
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
         serializer.save(title=title, author=self.request.user)
-        avg_rating = Review.objects.aggregate(rating=Avg('score'))
-        title.rating = avg_rating['rating']
-        title.save()
-
-    def perform_update(self, serializer):
-        serializer.save()
-        if 'score' in self.request.data:
-            avg_rating = Review.objects.all().aggregate(rating=Avg('score'))
-            title = get_object_or_404(Title, id=self.kwargs['title_id'])
-            title.rating = avg_rating['rating']
-            title.save()
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
