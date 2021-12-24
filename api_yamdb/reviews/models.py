@@ -7,13 +7,6 @@ from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 
 
-ROLE_CHOICES = (
-    ('admin', 'Администратор'),
-    ('user', 'Аутентифицированный пользователь'),
-    ('moderator', 'Модератор'),
-)
-
-
 def validate_year(value):
     current_year = datetime.now().year
     if -3400 > value or value > current_year:
@@ -29,6 +22,17 @@ def validate_score(value):
         raise ValidationError('Оценка должна быть от 0 до 10')
 
 
+class Roles(models.Model):
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
+    ROLE_CHOICES = (
+        (ADMIN, 'Администратор'),
+        (MODERATOR, 'Модератор'),
+        (USER, 'Аутентифицированный пользователь'),
+    )
+
+
 class User(AbstractUser):
     """Кастомизация модели пользователя."""
     bio = models.TextField(
@@ -38,7 +42,7 @@ class User(AbstractUser):
     role = models.CharField(
         verbose_name='Роль',
         max_length=50,
-        choices=ROLE_CHOICES,
+        choices=Roles.ROLE_CHOICES,
         default='user'
     )
     email = models.EmailField(
@@ -49,15 +53,15 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == 'admin'
+        return self.role == Roles.ADMIN
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == Roles.MODERATOR
 
     @property
     def is_user(self):
-        return self.role == 'user'
+        return self.role == Roles.USER
 
     class Meta:
         verbose_name = 'Пользователи'
