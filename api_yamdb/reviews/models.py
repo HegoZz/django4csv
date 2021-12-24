@@ -19,7 +19,7 @@ def validate_year(value):
     if -3400 > value or value > current_year:
         raise ValidationError(
             _('На данный момент нет произведений, '
-            'созданных в %(value)-м году'),
+              'созданных в %(value)-м году'),
             params={'value': value},
         )
 
