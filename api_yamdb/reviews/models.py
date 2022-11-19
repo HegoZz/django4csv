@@ -68,146 +68,109 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
 
-class Category(models.Model):
-    """Описание модели категории."""
+class Group(models.Model):
+    """Описание модели группы."""
     class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
-
-    name = models.CharField(
-        verbose_name='Название категории',
-        max_length=256,
-    )
-    slug = models.SlugField(
-        verbose_name='Уникальный идентификатор категории',
-        max_length=50,
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+    
+    vkId = models.PositiveIntegerField(
+        verbose_name='ID группы',
         unique=True,
     )
-
-
-class Genre(models.Model):
-    """Описание модели жанра."""
-    class Meta:
-        verbose_name = 'Жанр'
-        verbose_name_plural = 'Жанры'
-
-    name = models.CharField(
-        verbose_name='Название жанра',
-        max_length=256,
+    updated = models.DateTimeField(verbose_name='Дата обновления')
+    type = models.CharField(
+        verbose_name='Тип',
+        max_length=42,
     )
-    slug = models.SlugField(
-        verbose_name='Уникальный идентификатор жанра',
-        max_length=50,
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=73,
+    )
+    screenName = models.SlugField(
+        verbose_name='Уникальный идентификатор',
+        max_length=73,
         unique=True,
     )
-
-
-class Title(models.Model):
-    """Описание модели произведения."""
-    class Meta:
-        verbose_name = 'Произведение'
-        verbose_name_plural = 'Произведения'
-
-    name = models.CharField(
-        verbose_name='Название произведения',
-        max_length=256,
+    photo = models.URLField(
+        blank=True,
+        null=True,
     )
-    year = models.SmallIntegerField(
-        verbose_name='Год выпуска',
-        validators=[validate_year],
+    cover = models.URLField(
+        blank=True,
+        null=True,
     )
-    description = models.TextField(verbose_name='Описание', blank=True,)
-    genre = models.ManyToManyField(
-        Genre,
-        through='GenreTitle',
-        verbose_name='Жанр произведения',
+    mainSection = models.PositiveSmallIntegerField(
+        verbose_name='я хз, что это',
+        blank=True,
+        null=True,
     )
-    category = models.ForeignKey(
-        Category,
-        verbose_name='Категория',
-        on_delete=models.DO_NOTHING,
+    country = models.CharField(
+        verbose_name='Страна',
+        max_length=42,
+        blank=True,
+        null=True,
     )
-
-
-class GenreTitle(models.Model):
-    """Принадлежность произведения конкретному жанру."""
-    title_id = models.ForeignKey(
-        Title,
-        verbose_name='Произведение',
-        on_delete=models.CASCADE,
+    city = models.CharField(
+        verbose_name='Город',
+        max_length=42,
+        blank=True,
+        null=True,
     )
-    genre_id = models.ForeignKey(
-        Genre,
-        verbose_name='Жанр',
-        on_delete=models.DO_NOTHING,
-        related_name="titles",
+    activity = models.CharField(
+        verbose_name='Активность (что бы это не значило)',
+        max_length=42,
+        blank=True,
+        null=True,
     )
-
-    class Meta:
-        verbose_name = 'Жанры произведений'
-        verbose_name_plural = 'Жанры произведений'
-
-
-class Review(models.Model):
-    """Модель для отзывов."""
-    title = models.ForeignKey(
-        Title,
-        verbose_name='Произведение',
-        on_delete=models.CASCADE,
-        related_name='reviews'
+    status = models.CharField(
+        verbose_name='Статус (что бы это не значило)',
+        max_length=73,
+        blank=True,
+        null=True,
     )
-    text = models.TextField(verbose_name='Отзыв')
-    author = models.ForeignKey(
-        User,
-        verbose_name='Автор',
-        on_delete=models.CASCADE,
-        related_name='reviews'
+    description = models.TextField(
+        verbose_name='Здесь должно быть описание группы.',
+        blank=True,
+        null=True,
     )
-    score = models.SmallIntegerField(
-        verbose_name='Оценка',
-        validators=[validate_score])
-    pub_date = models.DateTimeField(
-        verbose_name='Дата публикации',
-        default=timezone.now()
+    ageLimits = models.PositiveSmallIntegerField(
+        verbose_name='Возрастное ограничение (вероятно)',
+        blank=True,
+        null=True,
     )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['title', 'author'],
-                name='unique_title_author'
-            )
-        ]
-        verbose_name = 'Отзывы'
-        verbose_name_plural = 'Отзывы'
+    membersCount = models.PositiveIntegerField(
+        verbose_name='Количество участников',
+        blank=True,
+        null=True,
+    )
+    fixedPost = models.PositiveIntegerField(
+        verbose_name='Закреплённый пост',
+        blank=True,
+        null=True,
+    )
+    contacts = models.TextField(
+        verbose_name='Контакты',
+        blank=True,
+        null=True,
+    )
+    site = models.URLField(
+        verbose_name='Сайт',
+        blank=True,
+        null=True,
+    )
+    isTrending = models.BooleanField(
+        verbose_name='В тренде?',
+        default=False,
+    )
+    isVerified = models.BooleanField(
+        verbose_name='Подтверждён?',
+        default=False,
+    )
+    hasMarket = models.BooleanField(
+        verbose_name='Имеет магазин?',
+        default=False,
+    )
 
     def __str__(self):
-        return self.text
-
-
-class Comment(models.Model):
-    """Модель для комментариев к отзыву."""
-    review = models.ForeignKey(
-        Review,
-        verbose_name='Отзыв',
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    text = models.TextField(verbose_name='Комментарий')
-    author = models.ForeignKey(
-        User,
-        verbose_name='Автор',
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    pub_date = models.DateTimeField(
-        verbose_name='Дата публикации',
-        default=timezone.now()
-    )
-
-    class Meta:
-        verbose_name = 'Комментарии'
-        verbose_name_plural = 'Комментарии'
-
-    def __str__(self):
-        return self.text
+        return self.name
